@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace HuDataBase
+﻿namespace HuDataBase
 {
     internal interface IDataBase
     {
@@ -21,7 +15,9 @@ namespace HuDataBase
         bool TableExist(string table);
         /// <summary>
         /// 获取类的属性名称和类型，并转换成数据库字段语句
-        /// 例如：ID integer PRIMARY KEY autoincrement,Name varchar(200) default NULL,Age Int32 default NULL
+        /// SQLite字段格式例如：ID integer PRIMARY KEY autoincrement,Name varchar(200) default NULL,Age Int32 default NULL
+        /// SQLSERVER字段格式例如：ID INT PRIMARY KEY IDENTITY(1,1)
+        /// MYSQL字段格式例如：ID INT PRIMARY KEY AUTO_INCREMENT
         /// </summary>
         /// <typeparam name="T">类</typeparam>
         /// <param name="model"></param>
@@ -29,7 +25,9 @@ namespace HuDataBase
         List<string> GetColumns<T>(T model) where T : class;
         /// <summary>
         /// 创建表,使用前请先调用GetColumns方法，或者自己写语句
-        /// 例如：ID integer PRIMARY KEY autoincrement,Name varchar(200) default NULL,Age Int32 default NULL
+        /// SQLite字段格式例如：ID integer PRIMARY KEY autoincrement,Name varchar(200) default NULL,Age Int32 default NULL
+        /// SQLSERVER字段格式例如：ID INT PRIMARY KEY IDENTITY(1,1)
+        /// MYSQL字段格式例如：ID INT PRIMARY KEY AUTO_INCREMENT
         /// </summary>
         /// <param name="table">表</param>
         /// <param name="Columns">字段SQL语句</param>
@@ -37,7 +35,9 @@ namespace HuDataBase
         void CreateTable(string table, List<string> colms);
         /// <summary>
         /// 添加字段，使用前请先调用GetColumns方法
-        /// 字段格式例如：ID integer PRIMARY KEY autoincrement,Name varchar(200) default NULL,Age Int32 default NULL
+        /// SQLite字段格式例如：ID integer PRIMARY KEY autoincrement,Name varchar(200) default NULL,Age Int32 default NULL
+        /// SQLSERVER字段格式例如：ID INT PRIMARY KEY IDENTITY(1,1)
+        /// MYSQL字段格式例如：ID INT PRIMARY KEY AUTO_INCREMENT
         /// </summary>
         /// <param name="table"></param>
         /// <param name="Colms"></param>
@@ -45,11 +45,12 @@ namespace HuDataBase
         void CreateColunm(string table, List<string> colms);
         /// <summary>
         /// 添加字段
-        /// 字段格式例如：ID integer PRIMARY KEY autoincrement,Name varchar(200) default NULL,Age Int32 default NULL
+        /// SQLite字段格式例如：ID integer PRIMARY KEY autoincrement,Name varchar(200) default NULL,Age Int32 default NULL
+        /// SQLSERVER字段格式例如：ID INT PRIMARY KEY IDENTITY(1,1)
+        /// MYSQL字段格式例如：ID INT PRIMARY KEY AUTO_INCREMENT
         /// </summary>
         /// <param name="table">表</param>
         /// <param name="colm">字段</param>
-        /// <param name="colType">字段类型</param>
         /// <exception cref="Exception"></exception>
         void CreateColunm(string table, string colm);
         /// <summary>
@@ -84,13 +85,13 @@ namespace HuDataBase
         /// <exception cref="Exception"></exception>
         bool Add<T>(string table, T model) where T : class;
         /// <summary>
-        /// 更新数据，注意时间格式(yyyy-MM-dd HH:mm:ss)
+        /// 更新数据，注意时间格式(yyyy-MM-dd HH:mm:ss) 
         /// </summary>
         /// <param name="table">表名</param>
         /// <param name="keyValues">数据字典</param>
         /// <param name="where">判断条件(一定要加 and )</param>
         /// <returns></returns>
-        bool Update(string table, Dictionary<string, string> keyValues, string where);
+        bool Update(string table, Dictionary<string, string> keyValues, string where = "");
         /// <summary>
         /// 删除数据
         /// 注意：请谨慎使用，where条件为空时会删除所有数据
@@ -124,6 +125,15 @@ namespace HuDataBase
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
         List<Dictionary<string, object>> Query(string table, string where = "");
+        /// <summary>
+        /// 分页查询数据
+        /// </summary>
+        /// <param name="table">表</param>
+        /// <param name="pageNumber">每页多少条</param>
+        /// <param name="pageSize">当前页</param>
+        /// <param name="where">判断条件(一定要加 and )</param>
+        /// <returns></returns>
+        List<T> QueryPage<T>(string table, int pageNumber, int pageSize, string where = "") where T : new();
         /// <summary>
         /// 分页查询数据
         /// </summary>

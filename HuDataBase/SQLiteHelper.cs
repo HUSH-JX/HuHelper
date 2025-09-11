@@ -377,6 +377,12 @@ namespace HuDataBase
         {
             try
             {
+                System.Reflection.PropertyInfo[] properties = typeof(T).GetProperties(System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public);
+                if (properties.Length <= 0)
+                {
+                    throw new Exception("类属性长度为零");
+                }
+
                 List<T> datas = new List<T>();
                 using (SQLiteConnection connection = new SQLiteConnection($"data source={dbPath}"))
                 {
@@ -388,11 +394,6 @@ namespace HuDataBase
                         DataTable dt = new DataTable();
                         da.Fill(dt);
 
-                        System.Reflection.PropertyInfo[] properties = typeof(T).GetProperties(System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public);
-                        if (properties.Length <= 0)
-                        {
-                            throw new Exception("类属性长度为零");
-                        }
                         foreach (DataRow dd in dt.Rows)
                         {
                             int i = 0;
@@ -490,44 +491,127 @@ namespace HuDataBase
         /// <param name="pageSize">当前页</param>
         /// <param name="where">判断条件(一定要加 and )</param>
         /// <returns></returns>
-        public List<Dictionary<string, object>> QueryPage(string table, int pageNumber, int pageSize, string where = "")
+        public List<T> QueryPage<T>(string table, int pageNumber, int pageSize, string where = "") where T : new()
         {
-            using (SQLiteConnection connection = new SQLiteConnection($"data source={dbPath}"))
+            try
             {
-                connection.Open();
+                System.Reflection.PropertyInfo[] properties = typeof(T).GetProperties(System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public);
+                if (properties.Length <= 0)
+                {
+                    throw new Exception("类属性长度为零");
+                }
+                using (SQLiteConnection connection = new SQLiteConnection($"data source={dbPath}"))
+                {
+                    connection.Open();
 
-                string sql = $@" SELECT * FROM (
+                    string sql = $@" SELECT * FROM (
                                     SELECT *, ROW_NUMBER() OVER (ORDER BY ID) AS RowNumber
                                     FROM {table} WHERE 1=1 {where}
                                     ) AS PagedTable
                                    WHERE 1=1 {where} AND RowNumber BETWEEN (({pageNumber}-1)*{pageSize} + 1) AND ({pageNumber}*{pageSize})";
 
-                List<Dictionary<string, object>> datas = new List<Dictionary<string, object>>();
-                using (SQLiteCommand cmd = new SQLiteCommand(connection))
-                {
-                    cmd.CommandText = sql;
-                    SQLiteDataAdapter da = new SQLiteDataAdapter(cmd);
-                    DataTable dt = new DataTable();
-                    da.Fill(dt);
+                    List<T> datas = new List<T>();
+                    using (SQLiteCommand cmd = new SQLiteCommand(connection))
+                    {
+                        cmd.CommandText = sql;
+                        SQLiteDataAdapter da = new SQLiteDataAdapter(cmd);
+                        DataTable dt = new DataTable();
+                        da.Fill(dt);
 
-                    List<string> columns = new List<string>();
-                    for (var i = 0; i < dt.Columns.Count; i++)
-                    {
-                        columns.Add(dt.Columns[i].ColumnName);
-                    }
-                    foreach (DataRow dd in dt.Rows)
-                    {
-                        object[] objects = dd.ItemArray;
-                        if (objects == null || objects.Length <= 0) continue;
-                        Dictionary<string, object> pairs = new Dictionary<string, object>();
-                        for (var i = 0; i < columns.Count; i++)
+                        foreach (DataRow dd in dt.Rows)
                         {
-                            pairs[columns[i]] = objects[i].ToString();
+                            int i = 0;
+                            var model = new T();
+                            foreach (System.Reflection.PropertyInfo item in properties)
+                            {
+                                var value = dd[i++];
+                                if (value is DBNull)
+                                {
+                                    if (item.PropertyType == typeof(string))
+                                    {
+                                        var ds = Convert.ChangeType(string.Empty, item.PropertyType);
+                                        item.SetValue(model, ds, null);
+                                    }
+                                    else if (item.PropertyType == typeof(int) || item.PropertyType == typeof(double))
+                                    {
+                                        var ds = Convert.ChangeType(0, item.PropertyType);
+                                        item.SetValue(model, ds, null);
+                                    }
+                                    else
+                                    {
+                                        var ds = Convert.ChangeType(0, item.PropertyType);
+                                        item.SetValue(model, ds, null);
+                                    }
+                                }
+                                else
+                                {
+                                    var ds = Convert.ChangeType(value, item.PropertyType);
+                                    item.SetValue(model, ds, null);
+                                }
+                            }
+                            datas.Add(model);
                         }
-                        datas.Add(pairs);
+                        return datas;
                     }
-                    return datas;
                 }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("分页查询出错:" + table + where + "\r\n" + ex.Message);
+            }
+        }
+        /// <summary>
+        /// 分页查询数据
+        /// </summary>
+        /// <param name="table">表</param>
+        /// <param name="pageNumber">每页多少条</param>
+        /// <param name="pageSize">当前页</param>
+        /// <param name="where">判断条件(一定要加 and )</param>
+        /// <returns></returns>
+        public List<Dictionary<string, object>> QueryPage(string table, int pageNumber, int pageSize, string where = "")
+        {
+            try
+            {
+                using (SQLiteConnection connection = new SQLiteConnection($"data source={dbPath}"))
+                {
+                    connection.Open();
+
+                    string sql = $@" SELECT * FROM (
+                                    SELECT *, ROW_NUMBER() OVER (ORDER BY ID) AS RowNumber
+                                    FROM {table} WHERE 1=1 {where}
+                                    ) AS PagedTable
+                                   WHERE 1=1 {where} AND RowNumber BETWEEN (({pageNumber}-1)*{pageSize} + 1) AND ({pageNumber}*{pageSize})";
+                    List<Dictionary<string, object>> datas = new List<Dictionary<string, object>>();
+                    using (SQLiteCommand cmd = new SQLiteCommand(connection))
+                    {
+                        cmd.CommandText = sql;
+                        SQLiteDataAdapter da = new SQLiteDataAdapter(cmd);
+                        DataTable dt = new DataTable();
+                        da.Fill(dt);
+
+                        List<string> columns = new List<string>();
+                        for (var i = 0; i < dt.Columns.Count; i++)
+                        {
+                            columns.Add(dt.Columns[i].ColumnName);
+                        }
+                        foreach (DataRow dd in dt.Rows)
+                        {
+                            object[] objects = dd.ItemArray;
+                            if (objects == null || objects.Length <= 0) continue;
+                            Dictionary<string, object> pairs = new Dictionary<string, object>();
+                            for (var i = 0; i < columns.Count; i++)
+                            {
+                                pairs[columns[i]] = objects[i].ToString();
+                            }
+                            datas.Add(pairs);
+                        }
+                        return datas;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("分页查询出错:" + table + where + "\r\n" + ex.Message);
             }
         }
 

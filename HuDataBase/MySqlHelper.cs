@@ -1,24 +1,24 @@
-﻿using Microsoft.Data.SqlClient;
+﻿using MySql.Data.MySqlClient;
 using System.Text;
 
 namespace HuDataBase
 {
-    public class SqlServerHelper : IDataBase
+    public class MySqlHelper : IDataBase
     {
         public string _connectionString = string.Empty;
         private string server = string.Empty;
         private string user = string.Empty;
         private string pwd = string.Empty;
         private string database = string.Empty;
-        public SqlServerHelper(string server, string user, string pwd, string database)
+
+        public MySqlHelper(string server, string user, string pwd, string database)
         {
             this.server = server;
             this.user = user;
             this.pwd = pwd;
             this.database = database;
-            _connectionString = $@"Server={server};Database={database};User Id={user};Password={pwd};TrustServerCertificate=True;";
+            _connectionString = $"server={server};user={user};password={pwd};database={database};";
         }
-
         /// <summary>
         /// 创建数据库
         /// </summary>
@@ -27,48 +27,24 @@ namespace HuDataBase
         {
             try
             {
-                var _connectionString = $@"Server={server};User Id={user};Password={pwd};TrustServerCertificate=True;";
-                using (SqlConnection connection = new SqlConnection(_connectionString))
+                _connectionString = $"Server={server};User={user};Password={pwd};Database={database};SslMode=none;charset=utf8;";
+
+                string connectionString = $"Server={server};User={user};Password={pwd};SslMode=none;charset=utf8;AllowPublicKeyRetrieval=True";
+                using (MySqlConnection connection = new MySqlConnection(connectionString))
                 {
                     connection.Open();
 
-                    // 检查数据库是否存在
-                    if (!DatabaseExists(connection))
+                    string createDatabaseQuery = $"CREATE DATABASE IF NOT EXISTS {database} DEFAULT CHARACTER SET utf8";
+                    using (MySqlCommand command = new MySqlCommand(createDatabaseQuery, connection))
                     {
-                        string query = $"CREATE DATABASE {database} COLLATE Chinese_PRC_CI_AS;";
-                        using (SqlCommand command = new SqlCommand(query, connection))
-                        {
-                            var count = command.ExecuteNonQuery();
-                            return count > 0;
-                        }
+                        var count = command.ExecuteNonQuery();
+                        return count > 0;
                     }
                 }
-                return false;
             }
             catch (Exception ex)
             {
-                throw new Exception($"创建数据库异常：{ex}");
-            }
-        }
-        /// <summary>
-        /// 判断数据库是否存在
-        /// </summary>
-        /// <returns></returns>
-        /// <exception cref="Exception"></exception>
-        public bool DatabaseExists(SqlConnection connection)
-        {
-            try
-            {
-                string query = $"SELECT COUNT(*) FROM sys.databases WHERE name = '{database}'";
-                using (SqlCommand command = new SqlCommand(query, connection))
-                {
-                    int count = (int)command.ExecuteScalar();
-                    return count > 0;
-                }
-            }
-            catch (Exception ex)
-            {
-                throw new Exception("判断数据库是否存在失败：" + ex.Message);
+                throw new Exception("创建数据库失败，" + ex.Message);
             }
         }
         /// <summary>
@@ -78,60 +54,21 @@ namespace HuDataBase
         /// <returns></returns>
         public bool TableExist(string table)
         {
-            using (SqlConnection connection = new SqlConnection(_connectionString))
+            using (MySqlConnection connection = new MySqlConnection(_connectionString))
             {
                 connection.Open();
 
-                string query = $"SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = '{table}'";
-                using (SqlCommand command = new SqlCommand(query, connection))
+                string createDatabaseQuery = $"SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = '{database}' AND table_name = '{table}';";
+                using (MySqlCommand command = new MySqlCommand(createDatabaseQuery, connection))
                 {
-                    int count = (int)command.ExecuteScalar();
+                    var count = command.ExecuteNonQuery();
                     return count > 0;
                 }
             }
         }
         /// <summary>
-        /// 创建表,使用前请先调用GetColumns方法，或者自己写语句
-        /// 例如：ID INT PRIMARY KEY IDENTITY(1,1),Name varchar(200) DEFAULT NULL,Age Int32 DEFAULT NULL
-        /// </summary>
-        /// <param name="table">表</param>
-        /// <param name="Columns">字段SQL语句</param>
-        /// <exception cref="Exception"></exception>
-        public void CreateTable(string table, List<string> Columns)
-        {
-            try
-            {
-                using (SqlConnection connection = new SqlConnection(_connectionString))
-                {
-                    connection.Open();
-
-                    StringBuilder builder = new StringBuilder();
-                    for (var i = 0; i < Columns.Count; i++)
-                    {
-                        if (i == Columns.Count - 1)
-                        {
-                            builder.Append(Columns[i]);
-                        }
-                        else
-                        {
-                            builder.Append(Columns[i] + ",");
-                        }
-                    }
-                    string query = $"CREATE TABLE {table} ({builder.ToString()});";
-                    using (SqlCommand command = new SqlCommand(query, connection))
-                    {
-                        command.ExecuteNonQuery();
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                throw new Exception("创建表失败：" + ex.Message);
-            }
-        }
-        /// <summary>
-        /// 获取类的属性名称和类型，并转换成数据库字段
-        /// 例如：ID INT PRIMARY KEY IDENTITY(1,1),Name varchar(200) DEFAULT NULL,Age Int32 DEFAULT NULL
+        /// 获取类的属性名称和类型，并转换成数据库字段语句
+        /// 例如：ID INT AUTO_INCREMENT PRIMARY KEY,Name varchar(200) default NULL,Age Int32 default NULL
         /// </summary>
         /// <typeparam name="T">类</typeparam>
         /// <param name="model"></param>
@@ -149,7 +86,7 @@ namespace HuDataBase
                 string Name = "";
                 if (item.Name == "ID")
                 {
-                    Name = item.Name + " INT PRIMARY KEY IDENTITY(1,1)";
+                    Name = item.Name + " INT AUTO_INCREMENT PRIMARY KEY";
                 }
                 else if (item.Name.Contains("Img"))
                 {
@@ -176,54 +113,58 @@ namespace HuDataBase
             return Columns;
         }
         /// <summary>
-        /// 判断字段是否存在
+        /// 创建表,使用前请先调用GetColumns方法，或者自己写语句
+        /// 例如：ID INT AUTO_INCREMENT PRIMARY KEY,Name varchar(200) default NULL,Age Int32 default NULL
         /// </summary>
-        /// <param name="table"></param>
-        /// <param name="colm"></param>
-        /// <returns></returns>
-        public bool ColumnExist(string table, string colm)
+        /// <param name="table">表</param>
+        /// <param name="Columns">字段SQL语句</param>
+        /// <exception cref="Exception"></exception>
+        public void CreateTable(string table, List<string> colms)
         {
-            try
+            using (MySqlConnection connection = new MySqlConnection(_connectionString))
             {
-                using (SqlConnection connection = new SqlConnection(_connectionString))
-                {
-                    connection.Open();
+                connection.Open();
 
-                    string query = $@" SELECT COUNT(*) 
-                                     FROM INFORMATION_SCHEMA.COLUMNS 
-                                     WHERE TABLE_NAME = '{table}' AND COLUMN_NAME = '{colm}'";
-                    using (SqlCommand command = new SqlCommand(query, connection))
+                StringBuilder builder = new StringBuilder();
+                for (var i = 0; i < colms.Count; i++)
+                {
+                    if (i == colms.Count - 1)
                     {
-                        int count = (int)command.ExecuteScalar();
-                        return count > 0;
+                        builder.Append(colms[i]);
+                    }
+                    else
+                    {
+                        builder.Append(colms[i] + ",");
                     }
                 }
-            }
-            catch (Exception ex)
-            {
-                throw new Exception("判断字段是否存在失败：" + ex.Message);
+                string query = $"CREATE TABLE {table} ({builder.ToString()});";
+                using (MySqlCommand command = new MySqlCommand(query, connection))
+                {
+                    command.ExecuteNonQuery();
+                }
             }
         }
         /// <summary>
-        /// 添加字段，使用前请先调用GetColumns方法
-        /// 字段格式例如：ID INT PRIMARY KEY IDENTITY(1,1),Name varchar(200) default NULL,Age Int32 default NULL
+        /// 添加字段
+        /// 字段格式例如：ID INT AUTO_INCREMENT PRIMARY KEY,Name varchar(200) default NULL,Age Int32 default NULL
         /// </summary>
-        /// <param name="table"></param>
-        /// <param name="Colms"></param>
+        /// <param name="table">表</param>
+        /// <param name="colm">字段</param>
         /// <exception cref="Exception"></exception>
         public void CreateColunm(string table, List<string> colms)
         {
             try
             {
-                using (SqlConnection connection = new SqlConnection(_connectionString))
+                using (MySqlConnection connection = new MySqlConnection(_connectionString))
                 {
                     connection.Open();
+
                     foreach (var colm in colms)
                     {
                         var colName = colm.Split(' ')[0];
                         if (ColumnExist(table, colName)) continue;
                         string query = $"ALTER TABLE {table} ADD {colm} ;";
-                        using (SqlCommand command = new SqlCommand(query, connection))
+                        using (MySqlCommand command = new MySqlCommand(query, connection))
                         {
                             command.ExecuteNonQuery();
                         }
@@ -232,25 +173,28 @@ namespace HuDataBase
             }
             catch (Exception ex)
             {
-                throw new Exception("添加字段失败：" + ex.Message);
+                throw new Exception("添加字段失败，" + ex.Message);
             }
         }
         /// <summary>
         /// 添加字段
-        /// 字段格式例如：ID INT PRIMARY KEY IDENTITY(1,1),Name varchar(200) default NULL,Age Int32 default NULL
+        /// 字段格式例如：ID INT AUTO_INCREMENT PRIMARY KEY,Name varchar(200) default NULL,Age Int32 default NULL
         /// </summary>
         /// <param name="table">表</param>
         /// <param name="colm">字段</param>
+        /// <exception cref="Exception"></exception>
         public void CreateColunm(string table, string colm)
         {
             try
             {
-                using (SqlConnection connection = new SqlConnection(_connectionString))
+                using (MySqlConnection connection = new MySqlConnection(_connectionString))
                 {
                     connection.Open();
 
+                    var colName = colm.Split(' ')[0];
+                    if (ColumnExist(table, colName)) return;
                     string query = $"ALTER TABLE {table} ADD {colm} ;";
-                    using (SqlCommand command = new SqlCommand(query, connection))
+                    using (MySqlCommand command = new MySqlCommand(query, connection))
                     {
                         command.ExecuteNonQuery();
                     }
@@ -258,37 +202,53 @@ namespace HuDataBase
             }
             catch (Exception ex)
             {
-                throw new Exception("添加字段失败：" + ex.Message);
+                throw new Exception("添加字段失败，" + ex.Message);
             }
         }
         /// <summary>
-        /// 删除字段
+        /// /删除字段
         /// </summary>
-        /// <param name="table">表</param>
-        /// <param name="colm">字段</param>
+        /// <param name="table"></param>
+        /// <param name="colm"></param>
+        /// <returns></returns>
+        /// <exception cref="NotImplementedException"></exception>
         public bool DeleteColumn(string table, string colm)
         {
-            try
+            using (MySqlConnection connection = new MySqlConnection(_connectionString))
             {
-                using (SqlConnection connection = new SqlConnection(_connectionString))
-                {
-                    connection.Open();
+                connection.Open();
 
-                    string query = $"ALTER TABLE {table} DROP COLUMN {colm} ;";
-                    using (SqlCommand command = new SqlCommand(query, connection))
-                    {
-                        var count = command.ExecuteNonQuery();
-                        return count > 0;
-                    }
+                string query = $"ALTER TABLE {table} DROP COLUMN {colm} ;";
+                using (MySqlCommand command = new MySqlCommand(query, connection))
+                {
+                    var count = command.ExecuteNonQuery();
+                    return count > 0;
                 }
             }
-            catch (Exception ex)
+        }
+        /// <summary>
+        /// 判断是否存在字段
+        /// </summary>
+        /// <param name="table"></param>
+        /// <param name="colm"></param>
+        /// <returns></returns>
+        /// <exception cref="NotImplementedException"></exception>
+        public bool ColumnExist(string table, string colm)
+        {
+            using (MySqlConnection connection = new MySqlConnection(_connectionString))
             {
-                throw new Exception("删除字段失败：" + ex.Message);
+                connection.Open();
+
+                string query = $@"SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS 
+                               WHERE TABLE_NAME = '{table}' 
+                               AND COLUMN_NAME = '{colm}';";
+                using (MySqlCommand command = new MySqlCommand(query, connection))
+                {
+                    var count = command.ExecuteNonQuery();
+                    return count > 0;
+                }
             }
         }
-
-        #region 数据
         /// <summary>
         /// 保存数据，注意时间格式(yyyy-MM-dd HH:mm:ss)
         /// </summary>
@@ -315,12 +275,10 @@ namespace HuDataBase
                     index++;
                 }
                 string query = $"INSERT INTO {table} ({columnBuilder.ToString()}) VALUES ({valueBuilder.ToString()});";
-
-                using (SqlConnection connection = new SqlConnection(_connectionString))
+                using (MySqlConnection connection = new MySqlConnection(_connectionString))
                 {
                     connection.Open();
-
-                    using (SqlCommand command = new SqlCommand(query, connection))
+                    using (MySqlCommand command = new MySqlCommand(query, connection))
                     {
                         var count = command.ExecuteNonQuery();
                         return count > 0;
@@ -329,7 +287,7 @@ namespace HuDataBase
             }
             catch (Exception ex)
             {
-                throw new Exception("新增数据失败：" + ex.Message);
+                throw new Exception("添加数据失败，" + ex.Message);
             }
         }
         /// <summary>
@@ -370,11 +328,11 @@ namespace HuDataBase
                 keys_string += ")";
                 value_string += ")";
                 string sql = string.Format("INSERT INTO " + table + " {0} VALUES {1} ;", keys_string, value_string);
-                using (SqlConnection connection = new SqlConnection(_connectionString))
+                using (MySqlConnection connection = new MySqlConnection(_connectionString))
                 {
                     connection.Open();
 
-                    using (SqlCommand command = new SqlCommand(sql, connection))
+                    using (MySqlCommand command = new MySqlCommand(sql, connection))
                     {
                         var count = command.ExecuteNonQuery();
                         return count > 0;
@@ -389,10 +347,11 @@ namespace HuDataBase
         /// <summary>
         /// 更新数据，注意时间格式(yyyy-MM-dd HH:mm:ss)
         /// </summary>
-        /// <param name="table">表名</param>
-        /// <param name="keyValues">数据字典</param>
-        /// <param name="where">判断条件(一定要加 and )</param>
+        /// <param name="table"></param>
+        /// <param name="keyValues"></param>
+        /// <param name="where"></param>
         /// <returns></returns>
+        /// <exception cref="NotImplementedException"></exception>
         public bool Update(string table, Dictionary<string, string> keyValues, string where = "")
         {
             try
@@ -409,11 +368,11 @@ namespace HuDataBase
                     index++;
                 }
                 string query = $"UPDATE {table} SET {setBuilder.ToString()} WHERE 1=1 {where} ;";
-                using (SqlConnection connection = new SqlConnection(_connectionString))
+                using (MySqlConnection connection = new MySqlConnection(_connectionString))
                 {
                     connection.Open();
 
-                    using (SqlCommand command = new SqlCommand(query, connection))
+                    using (MySqlCommand command = new MySqlCommand(query, connection))
                     {
                         var count = command.ExecuteNonQuery();
                         return (count > 0);
@@ -434,11 +393,11 @@ namespace HuDataBase
         /// <returns></returns>
         public bool Delete(string table, string where = "")
         {
-            using (SqlConnection connection = new SqlConnection(_connectionString))
+            using (MySqlConnection connection = new MySqlConnection(_connectionString))
             {
                 connection.Open();
                 string query = $"DELETE FROM {table} WHERE 1=1 {where};";
-                using (SqlCommand command = new SqlCommand(query, connection))
+                using (MySqlCommand command = new MySqlCommand(query, connection))
                 {
                     var count = command.ExecuteNonQuery();
                     return (count > 0);
@@ -448,19 +407,19 @@ namespace HuDataBase
         /// <summary>
         /// 判断数据是否存在
         /// </summary>
-        /// <param name="table">表名</param>
-        /// <param name="where">判断条件(一定要加 and )</param>
+        /// <param name="table"></param>
+        /// <param name="where"></param>
         /// <returns></returns>
-        /// <exception cref="Exception"></exception>
+        /// <exception cref="NotImplementedException"></exception>
         public int QueryCount(string table, string where = "")
         {
             try
             {
-                using (SqlConnection connection = new SqlConnection(_connectionString))
+                using (MySqlConnection connection = new MySqlConnection(_connectionString))
                 {
                     connection.Open();
                     string query = $"SELECT COUNT(*) FROM {table} WHERE 1=1 {where} ;";
-                    using (SqlCommand command = new SqlCommand(query, connection))
+                    using (MySqlCommand command = new MySqlCommand(query, connection))
                     {
                         int count = (int)command.ExecuteScalar();
                         return count;
@@ -491,14 +450,14 @@ namespace HuDataBase
                 }
 
                 List<T> datas = new List<T>();
-                using (SqlConnection connection = new SqlConnection(_connectionString))
+                using (MySqlConnection connection = new MySqlConnection(_connectionString))
                 {
                     connection.Open();
 
                     var query = $" SELECT * FROM {table} WHERE 1=1 {where} ;";
-                    using (SqlCommand command = new SqlCommand(query, connection))
+                    using (MySqlCommand command = new MySqlCommand(query, connection))
                     {
-                        using (SqlDataReader reader = command.ExecuteReader())
+                        using (MySqlDataReader reader = command.ExecuteReader())
                         {
                             List<Dictionary<string, object>> result = new List<Dictionary<string, object>>();
                             while (reader.Read())
@@ -557,14 +516,14 @@ namespace HuDataBase
         /// <exception cref="Exception"></exception>
         public List<Dictionary<string, object>> Query(string table, string where = "")
         {
-            using (SqlConnection connection = new SqlConnection(_connectionString))
+            using (MySqlConnection connection = new MySqlConnection(_connectionString))
             {
                 connection.Open();
 
                 string query = $"SELECT * FROM {table} WHERE 1=1 {where};";
-                using (SqlCommand command = new SqlCommand(query, connection))
+                using (MySqlCommand command = new MySqlCommand(query, connection))
                 {
-                    using (SqlDataReader reader = command.ExecuteReader())
+                    using (MySqlDataReader reader = command.ExecuteReader())
                     {
                         List<Dictionary<string, object>> result = new List<Dictionary<string, object>>();
                         while (reader.Read())
@@ -599,7 +558,7 @@ namespace HuDataBase
                     throw new Exception("类属性长度为零");
                 }
                 List<T> datas = new List<T>();
-                using (SqlConnection connection = new SqlConnection(_connectionString))
+                using (MySqlConnection connection = new MySqlConnection(_connectionString))
                 {
                     connection.Open();
 
@@ -609,10 +568,9 @@ namespace HuDataBase
                                     ) AS PagedTable
                                    WHERE 1=1 {where} AND RowNumber BETWEEN (({pageNumber}-1)*{pageSize} + 1) AND ({pageNumber}*{pageSize})";
 
-                
-                    using (SqlCommand command = new SqlCommand(sql, connection))
+                    using (MySqlCommand command = new MySqlCommand(sql, connection))
                     {
-                        using (SqlDataReader reader = command.ExecuteReader())
+                        using (MySqlDataReader reader = command.ExecuteReader())
                         {
                             List<Dictionary<string, object>> result = new List<Dictionary<string, object>>();
                             while (reader.Read())
@@ -672,7 +630,7 @@ namespace HuDataBase
         /// <returns></returns>
         public List<Dictionary<string, object>> QueryPage(string table, int pageNumber, int pageSize, string where = "")
         {
-            using (SqlConnection connection = new SqlConnection(_connectionString))
+            using (MySqlConnection connection = new MySqlConnection(_connectionString))
             {
                 connection.Open();
 
@@ -682,9 +640,9 @@ namespace HuDataBase
                                     ) AS PagedTable
                                    WHERE 1=1 {where} AND RowNumber BETWEEN (({pageNumber}-1)*{pageSize} + 1) AND ({pageNumber}*{pageSize})";
 
-                using (SqlCommand command = new SqlCommand(sql, connection))
+                using (MySqlCommand command = new MySqlCommand(sql, connection))
                 {
-                    using (SqlDataReader reader = command.ExecuteReader())
+                    using (MySqlDataReader reader = command.ExecuteReader())
                     {
                         List<Dictionary<string, object>> result = new List<Dictionary<string, object>>();
                         while (reader.Read())
@@ -702,6 +660,5 @@ namespace HuDataBase
             }
         }
 
-        #endregion
     }
 }

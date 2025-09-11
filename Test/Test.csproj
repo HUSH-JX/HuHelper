@@ -8,4 +8,9 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\HuDataBase\HuDataBase.csproj" />
+    <ProjectReference Include="..\HuHelper\HuHelper.csproj" />
+  </ItemGroup>
+
 </Project>

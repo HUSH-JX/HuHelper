@@ -128,28 +128,27 @@
                 b2,
                 b
             };
-        }
-        public static ushort UpdateCRC(byte[] input, int Length)
+        }    
+        public static byte CalculateAdd8(byte[] data)
         {
-            ushort num = ushort.MaxValue;
-            for (short num2 = 0; num2 < Length; num2 = (short)(num2 + 1))
+            byte sum = 0;
+            foreach (byte b in data)
             {
-                num = (ushort)(num ^ (input[num2] << 8));
-                for (short num3 = 0; num3 < 8; num3 = (short)(num3 + 1))
-                {
-                    if ((num & 0x8000) == 32768)
-                    {
-                        num = (ushort)(num << 1);
-                        num = (ushort)(num ^ 0x1021);
-                    }
-                    else
-                    {
-                        num = (ushort)(num << 1);
-                    }
-                }
+                sum += b;
             }
-
-            return num;
+            return sum;
+        }
+        public static ushort CalculateAdd16(byte[] data)
+        {
+            ushort sum = 0;
+            for (int i = 0; i < data.Length; i += 2)
+            {
+                ushort word = (i + 1 < data.Length)
+                    ? (ushort)((data[i] << 8) | data[i + 1])
+                    : (ushort)(data[i] << 8);
+                sum += word;
+            }
+            return sum;
         }
 
     }
