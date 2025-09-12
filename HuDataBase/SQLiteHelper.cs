@@ -106,7 +106,7 @@ namespace HuDataBase
             foreach (System.Reflection.PropertyInfo item in properties)
             {
                 string Name = "";
-                if (item.Name == "ID")
+                if (item.Name.ToLower().Equals("id"))
                 {
                     Name = item.Name + " integer PRIMARY KEY autoincrement";
                 }
@@ -281,11 +281,15 @@ namespace HuDataBase
             foreach (System.Reflection.PropertyInfo item in properties)
             {
                 var value = item.GetValue(model, null);
-                if (item.Name == "ID") continue;
+                if (item.Name.ToLower().Equals("id")) continue;
                 keys_string += "'" + item.Name + "',";
                 if (value == null)
                 {
                     value_string += "'',";
+                }
+                else if (value is DateTime)
+                {
+                    value_string += "'" + Convert.ToDateTime(value).ToString("yyyy-MM-dd HH:mm:ss") + "',";
                 }
                 else
                 {

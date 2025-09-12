@@ -38,8 +38,8 @@ namespace HuDataBase
                         string query = $"CREATE DATABASE {database} COLLATE Chinese_PRC_CI_AS;";
                         using (SqlCommand command = new SqlCommand(query, connection))
                         {
-                            var count = command.ExecuteNonQuery();
-                            return count > 0;
+                            command.ExecuteNonQuery();
+                            return true;
                         }
                     }
                 }
@@ -147,7 +147,7 @@ namespace HuDataBase
             foreach (System.Reflection.PropertyInfo item in properties)
             {
                 string Name = "";
-                if (item.Name == "ID")
+                if (item.Name.ToLower().Equals("id"))
                 {
                     Name = item.Name + " INT PRIMARY KEY IDENTITY(1,1)";
                 }
@@ -354,11 +354,16 @@ namespace HuDataBase
                 foreach (System.Reflection.PropertyInfo item in properties)
                 {
                     var value = item.GetValue(model, null);
-                    if (item.Name == "ID") continue;
-                    keys_string += "'" + item.Name + "',";
+                    if (item.Name.ToLower().Equals("id")) continue;
+                    keys_string += item.Name + ",";
                     if (value == null)
                     {
                         value_string += "'',";
+                    }
+                    else if (item.PropertyType == typeof(DateTime))
+                    {
+                        var dt = (DateTime)value;
+                        value_string += "'" + dt.ToString("yyyy-MM-dd HH:mm:ss") + "',";
                     }
                     else
                     {
@@ -609,7 +614,7 @@ namespace HuDataBase
                                     ) AS PagedTable
                                    WHERE 1=1 {where} AND RowNumber BETWEEN (({pageNumber}-1)*{pageSize} + 1) AND ({pageNumber}*{pageSize})";
 
-                
+
                     using (SqlCommand command = new SqlCommand(sql, connection))
                     {
                         using (SqlDataReader reader = command.ExecuteReader())

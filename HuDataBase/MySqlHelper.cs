@@ -17,7 +17,7 @@ namespace HuDataBase
             this.user = user;
             this.pwd = pwd;
             this.database = database;
-            _connectionString = $"server={server};user={user};password={pwd};database={database};";
+            _connectionString = $"Server={server};User={user};Password={pwd};port=3306;Database={database};SslMode=none;charset=utf8;";
         }
         /// <summary>
         /// 创建数据库
@@ -27,14 +27,12 @@ namespace HuDataBase
         {
             try
             {
-                _connectionString = $"Server={server};User={user};Password={pwd};Database={database};SslMode=none;charset=utf8;";
-
-                string connectionString = $"Server={server};User={user};Password={pwd};SslMode=none;charset=utf8;AllowPublicKeyRetrieval=True";
+                string connectionString = $"Server={server};User={user};Password={pwd};port=3306;SslMode=none;charset=utf8;AllowPublicKeyRetrieval=True;";
                 using (MySqlConnection connection = new MySqlConnection(connectionString))
                 {
                     connection.Open();
 
-                    string createDatabaseQuery = $"CREATE DATABASE IF NOT EXISTS {database} DEFAULT CHARACTER SET utf8";
+                    string createDatabaseQuery = $"CREATE DATABASE IF NOT EXISTS {database} DEFAULT CHARACTER SET utf8;";
                     using (MySqlCommand command = new MySqlCommand(createDatabaseQuery, connection))
                     {
                         var count = command.ExecuteNonQuery();
@@ -84,7 +82,7 @@ namespace HuDataBase
             foreach (System.Reflection.PropertyInfo item in properties)
             {
                 string Name = "";
-                if (item.Name == "ID")
+                if (item.Name.ToLower().Equals("id"))
                 {
                     Name = item.Name + " INT AUTO_INCREMENT PRIMARY KEY";
                 }
@@ -94,7 +92,7 @@ namespace HuDataBase
                 }
                 else if (item.PropertyType.ToString().Contains("DateTime"))
                 {
-                    Name = item.Name + " " + " DATETIME NOT NULL DEFAULT GETDATE()";
+                    Name = item.Name + " " + " TIMESTAMP DEFAULT CURRENT_TIMESTAMP";
                 }
                 else if (item.PropertyType.ToString().Contains("String"))
                 {
@@ -140,7 +138,7 @@ namespace HuDataBase
                 string query = $"CREATE TABLE {table} ({builder.ToString()});";
                 using (MySqlCommand command = new MySqlCommand(query, connection))
                 {
-                    command.ExecuteNonQuery();
+                    var count = command.ExecuteNonQuery();
                 }
             }
         }
@@ -312,11 +310,16 @@ namespace HuDataBase
                 foreach (System.Reflection.PropertyInfo item in properties)
                 {
                     var value = item.GetValue(model, null);
-                    if (item.Name == "ID") continue;
-                    keys_string += "'" + item.Name + "',";
+                    if (item.Name.ToLower().Equals("id")) continue;
+                    keys_string += item.Name + ",";
                     if (value == null)
                     {
                         value_string += "'',";
+                    }
+                    else if (value is DateTime)
+                    {
+                        var dt = (DateTime)value;
+                        value_string += "'" + dt.ToString("yyyy-MM-dd HH:mm:ss") + "',";
                     }
                     else
                     {

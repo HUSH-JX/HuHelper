@@ -1,6 +1,6 @@
 ﻿namespace HuDataBase
 {
-    internal interface IDataBase
+    public interface IDataBase
     {
         /// <summary>
         /// 创建数据库
