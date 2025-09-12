@@ -1,6 +1,7 @@
 ﻿using System.Data;
 using System.Data.Common;
 using System.Data.SQLite;
+using System.Reflection.PortableExecutable;
 
 namespace HuDataBase
 {
@@ -398,13 +399,25 @@ namespace HuDataBase
                         DataTable dt = new DataTable();
                         da.Fill(dt);
 
+                        List<string> columns = new List<string>();
+                        for (var i = 0; i < dt.Columns.Count; i++)
+                        {
+                            columns.Add(dt.Columns[i].ColumnName);
+                        }
                         foreach (DataRow dd in dt.Rows)
                         {
-                            int i = 0;
+                            object[] objects = dd.ItemArray;
+                            if (objects == null || objects.Length <= 0) continue;
+                            Dictionary<string, object> pairs = new Dictionary<string, object>();
+                            for (var i = 0; i < columns.Count; i++)
+                            {
+                                pairs[columns[i]] = objects[i];
+                            }
+
                             var model = new T();
                             foreach (System.Reflection.PropertyInfo item in properties)
                             {
-                                var value = dd[i++];
+                                var value = pairs.ContainsKey(item.Name) ? pairs[item.Name] : null;
                                 if (value is DBNull)
                                 {
                                     if (item.PropertyType == typeof(string))
@@ -522,13 +535,25 @@ namespace HuDataBase
                         DataTable dt = new DataTable();
                         da.Fill(dt);
 
+                        List<string> columns = new List<string>();
+                        for (var i = 0; i < dt.Columns.Count; i++)
+                        {
+                            columns.Add(dt.Columns[i].ColumnName);
+                        }
                         foreach (DataRow dd in dt.Rows)
                         {
-                            int i = 0;
+                            object[] objects = dd.ItemArray;
+                            if (objects == null || objects.Length <= 0) continue;
+                            Dictionary<string, object> pairs = new Dictionary<string, object>();
+                            for (var i = 0; i < columns.Count; i++)
+                            {
+                                pairs[columns[i]] = objects[i];
+                            }
+
                             var model = new T();
                             foreach (System.Reflection.PropertyInfo item in properties)
                             {
-                                var value = dd[i++];
+                                var value = pairs.ContainsKey(item.Name) ? pairs[item.Name] : null;
                                 if (value is DBNull)
                                 {
                                     if (item.PropertyType == typeof(string))

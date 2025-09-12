@@ -31,6 +31,7 @@
             button1 = new Button();
             button2 = new Button();
             groupBox1 = new GroupBox();
+            btnpage1 = new Button();
             btnEnty1 = new Button();
             btnDel1 = new Button();
             btnQuery1 = new Button();
@@ -47,6 +48,7 @@
             tbserver1 = new TextBox();
             label1 = new Label();
             groupBox2 = new GroupBox();
+            btnpage2 = new Button();
             btnEnty2 = new Button();
             btnDel2 = new Button();
             tbserver2 = new TextBox();
@@ -63,6 +65,7 @@
             tbdb2 = new TextBox();
             label5 = new Label();
             groupBox3 = new GroupBox();
+            btnpage3 = new Button();
             btnEnty3 = new Button();
             tbdb3 = new TextBox();
             label9 = new Label();
@@ -99,6 +102,7 @@
             // 
             // groupBox1
             // 
+            groupBox1.Controls.Add(btnpage1);
             groupBox1.Controls.Add(btnEnty1);
             groupBox1.Controls.Add(btnDel1);
             groupBox1.Controls.Add(btnQuery1);
@@ -116,10 +120,20 @@
             groupBox1.Controls.Add(label1);
             groupBox1.Location = new Point(35, 68);
             groupBox1.Name = "groupBox1";
-            groupBox1.Size = new Size(208, 477);
+            groupBox1.Size = new Size(208, 509);
             groupBox1.TabIndex = 2;
             groupBox1.TabStop = false;
             groupBox1.Text = "sqlserver";
+            // 
+            // btnpage1
+            // 
+            btnpage1.Location = new Point(26, 444);
+            btnpage1.Name = "btnpage1";
+            btnpage1.Size = new Size(149, 35);
+            btnpage1.TabIndex = 14;
+            btnpage1.Text = "分页查询";
+            btnpage1.UseVisualStyleBackColor = true;
+            btnpage1.Click += btnpage1_Click;
             // 
             // btnEnty1
             // 
@@ -261,6 +275,7 @@
             // 
             // groupBox2
             // 
+            groupBox2.Controls.Add(btnpage2);
             groupBox2.Controls.Add(btnEnty2);
             groupBox2.Controls.Add(btnDel2);
             groupBox2.Controls.Add(tbserver2);
@@ -278,10 +293,20 @@
             groupBox2.Controls.Add(label5);
             groupBox2.Location = new Point(249, 68);
             groupBox2.Name = "groupBox2";
-            groupBox2.Size = new Size(208, 477);
+            groupBox2.Size = new Size(208, 509);
             groupBox2.TabIndex = 3;
             groupBox2.TabStop = false;
             groupBox2.Text = "mysql";
+            // 
+            // btnpage2
+            // 
+            btnpage2.Location = new Point(26, 444);
+            btnpage2.Name = "btnpage2";
+            btnpage2.Size = new Size(149, 35);
+            btnpage2.TabIndex = 15;
+            btnpage2.Text = "分页查询";
+            btnpage2.UseVisualStyleBackColor = true;
+            btnpage2.Click += btnpage2_Click;
             // 
             // btnEnty2
             // 
@@ -423,6 +448,7 @@
             // 
             // groupBox3
             // 
+            groupBox3.Controls.Add(btnpage3);
             groupBox3.Controls.Add(btnEnty3);
             groupBox3.Controls.Add(tbdb3);
             groupBox3.Controls.Add(label9);
@@ -434,10 +460,20 @@
             groupBox3.Controls.Add(btnAdd3);
             groupBox3.Location = new Point(463, 68);
             groupBox3.Name = "groupBox3";
-            groupBox3.Size = new Size(208, 477);
+            groupBox3.Size = new Size(208, 509);
             groupBox3.TabIndex = 4;
             groupBox3.TabStop = false;
             groupBox3.Text = "sqlite";
+            // 
+            // btnpage3
+            // 
+            btnpage3.Location = new Point(33, 444);
+            btnpage3.Name = "btnpage3";
+            btnpage3.Size = new Size(149, 35);
+            btnpage3.TabIndex = 27;
+            btnpage3.Text = "分页查询";
+            btnpage3.UseVisualStyleBackColor = true;
+            btnpage3.Click += btnpage3_Click;
             // 
             // btnEnty3
             // 
@@ -530,7 +566,7 @@
             // 
             AutoScaleDimensions = new SizeF(7F, 17F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(709, 557);
+            ClientSize = new Size(709, 589);
             Controls.Add(groupBox3);
             Controls.Add(groupBox2);
             Controls.Add(groupBox1);
@@ -593,5 +629,8 @@
         private Button btnEnty1;
         private Button btnEnty2;
         private Button btnEnty3;
+        private Button btnpage1;
+        private Button btnpage2;
+        private Button btnpage3;
     }
 }

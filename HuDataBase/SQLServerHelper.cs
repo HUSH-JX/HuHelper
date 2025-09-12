@@ -505,7 +505,6 @@ namespace HuDataBase
                     {
                         using (SqlDataReader reader = command.ExecuteReader())
                         {
-                            List<Dictionary<string, object>> result = new List<Dictionary<string, object>>();
                             while (reader.Read())
                             {
                                 Dictionary<string, object> row = new Dictionary<string, object>();
@@ -619,7 +618,6 @@ namespace HuDataBase
                     {
                         using (SqlDataReader reader = command.ExecuteReader())
                         {
-                            List<Dictionary<string, object>> result = new List<Dictionary<string, object>>();
                             while (reader.Read())
                             {
                                 Dictionary<string, object> row = new Dictionary<string, object>();

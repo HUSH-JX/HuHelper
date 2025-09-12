@@ -90,6 +90,12 @@ namespace Test
         {
             var r = dataBase1.Delete("test", "and ID=1");
         }
+
+        private void btnpage1_Click(object sender, EventArgs e)
+        {
+            var data = dataBase1.QueryPage("test", 1, 50);
+            var data2 = dataBase1.QueryPage<DataBaseClass>("test", 1, 50);
+        }
         #endregion
 
 
@@ -149,6 +155,12 @@ namespace Test
         private void btnDel2_Click(object sender, EventArgs e)
         {
             var r = dataBase2.Delete("test", "and ID=1");
+        }
+
+        private void btnpage2_Click(object sender, EventArgs e)
+        {
+            var data = dataBase2.QueryPage("test", 1, 50);
+            var data2 = dataBase2.QueryPage<DataBaseClass>("test", 1, 50);
         }
         #endregion
 
@@ -210,6 +222,12 @@ namespace Test
         private void btnDel3_Click(object sender, EventArgs e)
         {
             var r = dataBase3.Delete("test", "and ID=1");
+        }
+
+        private void btnpage3_Click(object sender, EventArgs e)
+        {
+            var data = dataBase3.QueryPage("test", 1, 50);
+            var data2 = dataBase3.QueryPage<DataBaseClass>("test", 1, 50);
         }
         #endregion
 
