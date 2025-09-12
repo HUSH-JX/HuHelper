@@ -630,7 +630,7 @@ namespace HuDataBase
                             Dictionary<string, object> pairs = new Dictionary<string, object>();
                             for (var i = 0; i < columns.Count; i++)
                             {
-                                pairs[columns[i]] = objects[i].ToString();
+                                pairs[columns[i]] = objects[i];
                             }
                             datas.Add(pairs);
                         }
