@@ -5,7 +5,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <PackageId>HuDataBase</PackageId>
-    <Version>1.0.2</Version>
+    <Version>1.0.3</Version>
     <Authors>HUSH</Authors>
     <Product>HuDataBase</Product>
     <Description>数据库辅助包，包含MySql，SQLServer，SQLite的数据库生成，表生成，已经数据增删改查操作。</Description>
@@ -14,8 +14,17 @@
 	<NoWarn>$(NoWarn);1591</NoWarn>
 	<IncludeSymbols>true</IncludeSymbols>
 	<SymbolPackageFormat>snupkg</SymbolPackageFormat>
-	  <PackageReadmeFile>README.md</PackageReadmeFile>
+	<PackageReadmeFile>README.md</PackageReadmeFile>
+	<RepositoryUrl>https://github.com/HUSH-JX/HuHelper</RepositoryUrl>
+	<Title>数据库辅助类</Title>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Data.SqlClient" Version="6.1.1" />
