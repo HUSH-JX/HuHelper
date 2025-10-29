@@ -75,6 +75,7 @@
             btnCta3 = new Button();
             btnEdit3 = new Button();
             btnAdd3 = new Button();
+            button3 = new Button();
             groupBox1.SuspendLayout();
             groupBox2.SuspendLayout();
             groupBox3.SuspendLayout();
@@ -562,11 +563,22 @@
             btnAdd3.UseVisualStyleBackColor = true;
             btnAdd3.Click += btnAdd3_Click;
             // 
+            // button3
+            // 
+            button3.Location = new Point(228, 21);
+            button3.Name = "button3";
+            button3.Size = new Size(90, 35);
+            button3.TabIndex = 5;
+            button3.Text = "高精准定时器";
+            button3.UseVisualStyleBackColor = true;
+            button3.Click += button3_Click;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 17F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(709, 589);
+            Controls.Add(button3);
             Controls.Add(groupBox3);
             Controls.Add(groupBox2);
             Controls.Add(groupBox1);
@@ -632,5 +644,6 @@
         private Button btnpage1;
         private Button btnpage2;
         private Button btnpage3;
+        private Button button3;
     }
 }

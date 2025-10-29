@@ -231,5 +231,17 @@ namespace Test
         }
         #endregion
 
+        private void button3_Click(object sender, EventArgs e)
+        {
+            var timer = new HighPrecisionTimer();
+            timer.Interval = 200; // 设置定时器的时间间隔为200毫秒
+            timer.Ticked += Timer_Ticked; ;
+            timer.Start();
+        }
+
+        private void Timer_Ticked()
+        {
+            
+        }
     }
 }
