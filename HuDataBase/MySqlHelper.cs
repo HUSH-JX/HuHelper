@@ -1,4 +1,5 @@
-﻿using MySql.Data.MySqlClient;
+﻿using Microsoft.Data.SqlClient;
+using MySql.Data.MySqlClient;
 using System.Text;
 
 namespace HuDataBase
@@ -115,7 +116,7 @@ namespace HuDataBase
         /// 例如：ID INT AUTO_INCREMENT PRIMARY KEY,Name varchar(200) default NULL,Age Int32 default NULL
         /// </summary>
         /// <param name="table">表</param>
-        /// <param name="Columns">字段SQL语句</param>
+        /// <param name="colms">字段SQL语句</param>
         /// <exception cref="Exception"></exception>
         public void CreateTable(string table, List<string> colms)
         {
@@ -143,11 +144,36 @@ namespace HuDataBase
             }
         }
         /// <summary>
+        /// 删除表
+        /// </summary>
+        /// <param name="table"></param>
+        public bool DropTable(string table)
+        {
+            try
+            {
+                using (MySqlConnection connection = new MySqlConnection(_connectionString))
+                {
+                    connection.Open();
+
+                    string query = $"DROP TABLE IF EXISTS {table} ;";
+                    using (MySqlCommand command = new MySqlCommand(query, connection))
+                    {
+                        var count = command.ExecuteNonQuery();
+                        return count > 0;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("删除表" + table + "失败：" + ex.Message);
+            }
+        }
+        /// <summary>
         /// 添加字段
         /// 字段格式例如：ID INT AUTO_INCREMENT PRIMARY KEY,Name varchar(200) default NULL,Age Int32 default NULL
         /// </summary>
         /// <param name="table">表</param>
-        /// <param name="colm">字段</param>
+        /// <param name="colms">字段</param>
         /// <exception cref="Exception"></exception>
         public void CreateColunm(string table, List<string> colms)
         {

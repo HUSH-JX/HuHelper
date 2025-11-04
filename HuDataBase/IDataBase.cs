@@ -30,9 +30,14 @@
         /// MYSQL字段格式例如：ID INT PRIMARY KEY AUTO_INCREMENT
         /// </summary>
         /// <param name="table">表</param>
-        /// <param name="Columns">字段SQL语句</param>
+        /// <param name="colms">字段SQL语句</param>
         /// <exception cref="Exception"></exception>
         void CreateTable(string table, List<string> colms);
+        /// <summary>
+        /// 删除表
+        /// </summary>
+        /// <param name="table">表</param>
+        bool DropTable(string table);
         /// <summary>
         /// 添加字段，使用前请先调用GetColumns方法
         /// SQLite字段格式例如：ID integer PRIMARY KEY autoincrement,Name varchar(200) default NULL,Age Int32 default NULL
@@ -40,7 +45,7 @@
         /// MYSQL字段格式例如：ID INT PRIMARY KEY AUTO_INCREMENT
         /// </summary>
         /// <param name="table"></param>
-        /// <param name="Colms"></param>
+        /// <param name="colms"></param>
         /// <exception cref="Exception"></exception>
         void CreateColunm(string table, List<string> colms);
         /// <summary>

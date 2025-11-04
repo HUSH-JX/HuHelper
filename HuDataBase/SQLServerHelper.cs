@@ -130,6 +130,31 @@ namespace HuDataBase
             }
         }
         /// <summary>
+        /// 删除表
+        /// </summary>
+        /// <param name="table"></param>
+        public bool DropTable(string table)
+        {
+            try
+            {
+                using (SqlConnection connection = new SqlConnection(_connectionString))
+                {
+                    connection.Open();
+
+                    string query = $"DROP TABLE IF EXISTS {table};";
+                    using (SqlCommand command = new SqlCommand(query, connection))
+                    {
+                        var row = command.ExecuteNonQuery();
+                        return row > 0;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("删除表" + table + "失败：" + ex.Message);
+            }
+        }
+        /// <summary>
         /// 获取类的属性名称和类型，并转换成数据库字段
         /// 例如：ID INT PRIMARY KEY IDENTITY(1,1),Name varchar(200) DEFAULT NULL,Age Int32 DEFAULT NULL
         /// </summary>
@@ -209,7 +234,7 @@ namespace HuDataBase
         /// 字段格式例如：ID INT PRIMARY KEY IDENTITY(1,1),Name varchar(200) default NULL,Age Int32 default NULL
         /// </summary>
         /// <param name="table"></param>
-        /// <param name="Colms"></param>
+        /// <param name="colms"></param>
         /// <exception cref="Exception"></exception>
         public void CreateColunm(string table, List<string> colms)
         {

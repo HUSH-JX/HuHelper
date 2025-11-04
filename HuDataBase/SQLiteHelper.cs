@@ -90,6 +90,30 @@ namespace HuDataBase
             }
         }
         /// <summary>
+        /// 删除表
+        /// </summary>
+        /// <param name="table"></param>
+        public bool DropTable(string table)
+        {
+            try
+            {
+                using (SQLiteConnection connection = new SQLiteConnection($"data source={dbPath}"))
+                {
+                    connection.Open();
+                    using (SQLiteCommand cmd = new SQLiteCommand(connection))
+                    {
+                        cmd.CommandText = $" DROP TABLE IF EXISTS {table} ";
+                        var row = cmd.ExecuteNonQuery();
+                        return row > 0;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("删除表" + table + "失败：" + ex.Message);
+            }
+        }
+        /// <summary>
         /// 获取类的属性名称和类型，并转换成数据库字段
         /// 例如：ID integer PRIMARY KEY autoincrement,Name varchar(200) default NULL,Age Int32 default NULL
         /// </summary>
@@ -136,7 +160,7 @@ namespace HuDataBase
         /// 字段格式例如：ID integer PRIMARY KEY autoincrement,Name varchar(200) default NULL,Age Int32 default NULL
         /// </summary>
         /// <param name="table"></param>
-        /// <param name="Colms"></param>
+        /// <param name="colms"></param>
         /// <exception cref="Exception"></exception>
         public void CreateColunm(string table, List<string> colms)
         {
@@ -173,7 +197,6 @@ namespace HuDataBase
         /// </summary>
         /// <param name="table">表</param>
         /// <param name="colm">字段</param>
-        /// <param name="colType">字段类型</param>
         /// <exception cref="Exception"></exception>
         public void CreateColunm(string table, string colm)
         {
